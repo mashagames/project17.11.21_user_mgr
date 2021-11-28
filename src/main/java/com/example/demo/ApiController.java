@@ -1,5 +1,6 @@
 package com.example.demo;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -12,16 +13,31 @@ import java.util.Map.Entry;
 
 @RestController
 public class ApiController {
+
+
+    HashMap<String, String> userPwd = new HashMap<>();
+    HashMap<String, Integer> userAge = new HashMap<>();
+    // 1.   Создать пользователя
+    /* curl -s -X POST http://localhost:8080/adduser/username/password/25 */
+    @PostMapping("adduser/{username}/{password}/{age}")
+    public void addUser(
+            @PathVariable("username") String username, @PathVariable("password") String password, @PathVariable("age") Integer age) {
+        userPwd.put(username, password);
+        userAge.put(username, age);
+    }
+
+    // 2. Возвращает пользователя по username. Если пользователя нет, то вернуть 404 ошибку.
+    /*  curl -s -X GET http://localhost:8080/users/username  */
+    @GetMapping("users/{username}")
+    public String getUser(@PathVariable("username") String username) {
+        if (userPwd.get(username) == null) return "No such user";
+        return userPwd.get(username) + "; " + userAge.get(username);
+    }
+
     private List<String> topics = new ArrayList<>();
     private List<HashMap<String, String>> topicComments = new ArrayList<>();
 
-    // 1.      Создать тему
-    /* curl -s -X POST http://localhost:8080/topics -H 'Content-Type: text/plain' -d 'Topic 1' */
-    @PostMapping("topics")
-    public void createTopic(@RequestBody String text) {
-        topics.add(text);
-        topicComments.add(new HashMap<String, String>());
-    }
+
 
     // 2.      Удалить тему
     /* curl -s -X DELETE http://localhost:8080/topics/2 */
@@ -90,37 +106,6 @@ public class ApiController {
         topicComment.remove(user, comment);
     }
 
-    // 10.   Обновить комментарий в определенной теме
-    /* curl -s -X PUT -d 'comment=comment1&comment_new=commentNew' http://localhost:8080/topics/0/commUpd  */
-    @PutMapping("topics/{index}/commUpd")
-    public void updateComment(
-            @PathVariable("index") Integer index,
-            @RequestParam("comment") String comment,
-            @RequestParam("comment_new") String comment_new) {
-        HashMap<String, String> topicComment = topicComments.get(index);
-        for (Map.Entry entry : topicComment.entrySet()) {
-            if (entry.getValue().equals(comment))
-                topicComment.replace((String)entry.getKey(), comment, comment_new);
-/*             if (entry.getValue() == comment) {
-                String user = (String) entry.getKey();
-                topicComment.remove(user, comment);
-                topicComment.put(user, comment_new); */
-
-        }
-    }
-
-    // 11.   Выдать список комментариев определенной темы
-    /* curl -s -X GET http://localhost:8080/topics/0/comments  */
-    @GetMapping("topics/{index}/comments")
-    public List<String> getCommentTopic(
-            @PathVariable("index") Integer index) {
-        HashMap<String, String> topicComment = topicComments.get(index);
-        List<String> commentsList = new ArrayList<>();
-        for (Map.Entry entry : topicComment.entrySet()) {
-            commentsList.add(""+entry.getKey()+";"+entry.getValue());
-        }
-        return commentsList;
-    }
 
     // 12.   Комментарии должны быть привязаны к пользователям (username)
     // 13.   Выдать список комментариев определенного пользователя
