@@ -86,7 +86,6 @@ public class ApiController {
     public List<String> getUsersInAge(@RequestParam("direction") String direction) {
         HashMap<String, Integer> sortedMap;
         List<String> users = new ArrayList<>();
-        System.out.println(direction);
         if (direction.equals("up"))
             sortedMap = userAge.entrySet()
                 .stream()
